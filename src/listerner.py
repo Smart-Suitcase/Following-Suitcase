@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
+
 import rospy
-from std_msgs.msg import String
+from std_msgs.msg import Float64
 import requests
 import cv2
 import time
@@ -28,9 +30,10 @@ def capture_and_upload_image():
     print(response.status_code)
 
 def callback(data):
+    global last_time
     rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data.data)
 
-    threshold = 6  # Set the threshold value here
+    threshold = 4  # Set the threshold value here
 
     # Check if the threshold has been reached
     if int(data.data) >= threshold and time.time() - last_time > 5:
@@ -42,8 +45,9 @@ def callback(data):
 
 def listener():
     rospy.init_node('listener', anonymous=True)
-    rospy.Subscriber('range', String, callback)
+    rospy.Subscriber('range', Float64, callback)
     rospy.spin()
 
 if __name__ == '__main__':
+
     listener()
