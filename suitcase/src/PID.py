@@ -34,18 +34,20 @@ class FollowingRobot:
         self.anlge_pid = PID(Kp_a, Ki_a, Kd_a, setpoint=SP_a, output_limits=(-20,20))
     
     def update_speed(self):
-        if self.average_pwm >= 0:
-            self.LeftDirection.publish(2)
-            self.RightDirection.publish(2)
-            self.left_pwm = self.average_pwm + self.rotation_pwm
-            self.right_pwm = self.average_pwm - self.rotation_pwm
-        else:
+        self.left_pwm = self.average_pwm + self.rotation_pwm
+        self.right_pwm = self.average_pwm - self.rotation_pwm
+        if self.left_pwm >= 0:
             self.LeftDirection.publish(1)
+            self.LeftSpeed.publish(self.left_pwm)
+        else:
+            self.LeftDirection.publish(2)
+            self.LeftSpeed.publish(- self.left_pwm)
+        if self.right_pwm >= 0:
             self.RightDirection.publish(1)
-            self.left_pwm = self.average_pwm - self.rotation_pwm
-            self.right_pwm = self.average_pwm + self.rotation_pwm
-        self.LeftSpeed.publish(self.left_pwm)
-        self.RightSpeed.publish(self.right_pwm)
+            self.RightSpeed.publish(self.right_pwm)
+        else:
+            self.RightDirection.publish(2)
+            self.RightSpeed.publish(- self.right_pwm)
 
     def range_callback(self, data):
         #received data
