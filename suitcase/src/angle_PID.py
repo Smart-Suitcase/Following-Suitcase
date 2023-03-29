@@ -6,7 +6,7 @@ from std_msgs.msg import UInt16
 from simple_pid import PID
 
 ##### PID variables #####
-Kp = 0.1
+Kp = 10
 Ki = 0.1
 Kd = 0.05
 SP = 0
