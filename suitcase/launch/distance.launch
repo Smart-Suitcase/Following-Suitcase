@@ -8,4 +8,11 @@
   <node name="serial_node1" pkg="rosserial_python" type="serial_node.py" output="screen">
     <param name="port" value="/dev/ttyUSB0" />
   </node>
+
+  <node name="pixel_publisher" pkg="suitcase" type="test_video_publisher.py">
+  </node>
+
+  <node name="PID" pkg="suitcase" type="distance.py">  </node>
+
+
 </launch>
