@@ -32,16 +32,21 @@ class FollowingRobot:
         #sent data
         self.pwm_value = self.pid(2 * self.pid.setpoint - data.data)
         if self.pwm_value >= 0:
-            self.ld.publish(1)
-            self.rd.publish(1)
+            self.ld.publish(2)
+            self.rd.publish(2)
             self.ls.publish(self.pwm_value)
             self.rs.publish(self.pwm_value)
         else:
-            self.ld.publish(2)
-            self.rd.publish(2)
+            self.ld.publish(1)
+            self.rd.publish(1)
             self.ls.publish(- self.pwm_value)
             self.rs.publish(- self.pwm_value)
-        #sleep
+        #sleep//
+
+
+
+
+        
         rospy.loginfo("I sent %s", self.pwm_value)
         self.rate.sleep()
 
