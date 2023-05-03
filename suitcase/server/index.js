@@ -1,60 +1,53 @@
 // Importing express module
 const express = require("express")
 const app = express()
-  
-    /**
-    An example of using rosnodejs with turtlesim, incl. services,
-    pub/sub, and actionlib. This example uses the on-demand generated
-    messages.
- */
+const rosnodejs = require('rosnodejs');
 
-    'use strict';
 
-    let rosnodejs = require('rosnodejs');
-    rosnodejs.initNode('/my_node', {onTheFly: true}).then((rosNode) => {
-    
-        // get list of existing publishers, subscribers, and services
-        rosNode._node._masterApi.getSystemState("/my_node").then((data) => {
-        console.log("getSystemState, result", data, data.publishers[0]);
-        });
-    
-        const std_msgs = rosnodejs.require('std_msgs').msg;
-        const msg = new std_msgs.Float64();
-    
-        rosNode.subscribe(
-        '/x_pixel',
-        'std_msgs/Int16',
-        (data) => {
-            console.log('my data', data.data);
-        },
-        {queueSize: 1,
-            throttleMs: 1000}
-    )
-    let pub = rosNode.advertise('/my_topic','std_msgs/String', {
+// Initialisation of the connexion with the ROSMaster
+rosnodejs.initNode('/my_node', {onTheFly: true}).then((rosNode) => {
+
+    // Get list of existing publishers, subscribers, and services
+    rosNode._node._masterApi.getSystemState("/my_node").then((data) => {
+    console.log("getSystemState, result", data, data.publishers[0]);
+    });
+
+    const std_msgs = rosnodejs.require('std_msgs').msg;
+    const msg_string = new std_msgs.String();
+    const msg_float = new std_msgs.Float64();
+    const msg_uint = new std_msgs.UInt16();
+
+
+    // Exemple of the subscribe to the x_pixel topic in continue
+//     rosNode.subscribe(
+//     '/x_pixel',
+//     'std_msgs/Int16',
+//     (data) => {
+//         console.log('my data', data.data);
+//     },
+//     {queueSize: 1,
+//         throttleMs: 1000}
+// )
+
+    // Initalisation of the publishers
+    let mode = rosNode.advertise('/mode','std_msgs/String', {
         queueSize: 1,
         latching: true,
         throttleMs: 9
-    });
-    
-    
-    // let msgStart = 'my message ';
-    // let iter = 0;
-    // setInterval(() => {
-    //     msg.data = msgStart + iter
-    //     pub.publish(msg);
-    //     console.log('ca publish la')
-    //     ++iter;
-    //     if (iter > 200) {
-    //         iter = 0;
-    //     }
-    // }, 5);
-    // Handling GET / request
-    app.get("/hello", (req, res, next) => {
-        let msgStart = 'my message ';
-        msg.data = msgStart
-        pub.publish(msg);
-        res.send("This is the express server")
-    })
+    }
+    );
+
+
+// Routes
+app.get("/mode:mode_val", (req, res, next) => {
+    let msg = req.params.mode_val;
+    msg_string.data = (msg);
+    mode.publish(msg_string);
+    res.send(msg_string.data);
+})
+
+
+
 });
 
   
