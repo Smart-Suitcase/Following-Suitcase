@@ -4,21 +4,23 @@
 # Author:
 # - Addison Sears-Collins
 # - https://automaticaddison.com
-# Modified to detect ArUco tag with ID 667 and stream video over the network
 
 # Import the necessary libraries
 import rospy  # Python library for ROS
-from sensor_msgs.msg import CompressedImage  # CompressedImage is the message type
+from sensor_msgs.msg import Image  # Image is the message type
 from std_msgs.msg import Int16  # Image is the message type
 import cv2  # OpenCV library
+from cv_bridge import CvBridge  # Package to convert between ROS and OpenCV Images
 import numpy as np
 import math
+from pyzbar.pyzbar import decode
+
 
 def publish_message():
 
     # Node is publishing to the video_frames topic using
-    # the message type CompressedImage
-    pub = rospy.Publisher('video_frames/compressed', CompressedImage, queue_size=10)
+    # the message type Image
+    pub = rospy.Publisher('video_frames', Image, queue_size=10)
     pub2 = rospy.Publisher('pixel', Int16, queue_size=10)
     # Tells rospy the name of the node.
     # Anonymous = True makes sure the node has a unique name. Random
@@ -33,60 +35,51 @@ def publish_message():
     cap = cv2.VideoCapture(0)
     WIDTH = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     HEIGHT = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    
-    # Load the ArUco dictionary and parameters
-    # aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
-    aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+    # print(width, height)
+    fgbg = cv2.createBackgroundSubtractorMOG2()
 
-    aruco_params = cv2.aruco.DetectorParameters_create()
+    # Used to convert between ROS and OpenCV images
+    br = CvBridge()
 
-    # While ROS is still running.
+
     while not rospy.is_shutdown():
 
         # Capture frame-by-frame
-        # This method returns True/False as well
-        # as the video frame.
         ret, frame = cap.read()
 
         if ret == True:
             # Print debugging information to the terminal
             rospy.loginfo('publishing video frame')
 
-            # Detect ArUco markers
-            corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(frame, aruco_dict, parameters=aruco_params)
+            # Decode QR codes in the frame
+            decoded_qr_codes = decode(frame)
 
-            # Draw detected markers
-            frame = cv2.aruco.drawDetectedMarkers(frame, corners, ids)
+            for d in decoded_qr_codes:
+                if d.data.decode('utf-8') == 'suitcase':
+                    x, y, w, h = d.rect
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-            if ids is not None:
-                # Find the ArUco tag with ID 667
-                for i, tag_id in enumerate(ids.flatten()):
-                    if tag_id == 667:
-                        # Get the center of the detected ArUco tag
-                        center = tuple(np.mean(corners[i][0], axis=0).astype(int))
+                    center = (x + w//2, y + h//2)
+                    camera_center = (frame.shape[1]//2, frame.shape[0]//2)
+                    cv2.line(frame, center, camera_center, (255, 0, 0), 2)
 
-                        # Draw a circle at the center of the ArUco tag
-                        cv2.circle(frame, center, 3, (0, 0, 255), 2)
+                    dx = camera_center[0] - center[0]
+                    dy = camera_center[1] - center[1]
+                    angle = math.degrees(math.atan2(dy, dx))
+                    cv2.putText(frame, f"Angle: {angle:.2f}", (20, 40),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
-                        # Calculate the x-coordinate of the center of the rectangle relative to the center of the screen
-                        camera_center = (frame.shape[1] // 2, frame.shape[0] // 2)
-                        x_offset = center[0] - camera_center[0]
+                    x_offset = center[0] - camera_center[0]
+                    cv2.putText(frame, f"X-Offset: {x_offset:.2f}", (20, 80),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
-                        # Publish the x_offset
-                        pub2.publish(x_offset)
-
-            # Encode the frame as a compressed JPEG image
-            compressed_frame = cv2.imencode('.jpg', frame)[1].tobytes()
-
-            # Create a CompressedImage message and publish the encoded frame
-            msg = CompressedImage()
-            msg.header.stamp = rospy.Time.now()
-            msg.format = "jpeg"
-            msg.data = compressed_frame
-            pub.publish(msg)
+        pub.publish(br.cv2_to_imgmsg(frame, encoding='rgb8'))
+        pub2.publish(x_offset)
 
         # Sleep just enough to maintain the desired rate
         rate.sleep()
+
+
 
 if __name__ == '__main__':
     try:
