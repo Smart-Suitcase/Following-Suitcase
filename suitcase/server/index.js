@@ -21,6 +21,7 @@ rosnodejs.initNode('/my_node', { onTheFly: true }).then((rosNode) => {
 
 
     // Exemple of the subscribe to the x_pixel topic in continue
+
     //     rosNode.subscribe(
     //     '/x_pixel',
     //     'std_msgs/Int16',
@@ -119,7 +120,6 @@ rosnodejs.initNode('/my_node', { onTheFly: true }).then((rosNode) => {
         right_direction.publish(message);
         res.status(200).send(`Published right_direction: ${rightDirection}`);
     });
-
 });
 
 
