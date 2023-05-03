@@ -20,7 +20,7 @@ def publish_message():
     # Node is publishing to the video_frames topic using
     # the message type Image
     pub = rospy.Publisher('video_frames', Image, queue_size=10)
-    pub2 = rospy.Publisher('pixel', Int16, queue_size=10)
+    pub2 = rospy.Publisher('x_pixel', Int16, queue_size=10)
     # Tells rospy the name of the node.
     # Anonymous = True makes sure the node has a unique name. Random
     # numbers are added to the end of the name.

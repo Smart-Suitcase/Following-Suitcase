@@ -21,7 +21,10 @@ float this_anchor_target_distance = 1; //measured distance to anchor in m
 uint16_t this_anchor_Adelay = 16600; //starting value
 uint16_t Adelay_delta = 100; //initial binary search step size
  
- 
+//to solve reset bug
+unsigned long start = millis();
+#define RESET_PERIOD     20000
+
 void setup()
 {
   Serial.begin(115200);
@@ -50,6 +53,9 @@ void setup()
 void loop()
 {
   DW1000Ranging.loop();
+  if ( (millis() - start) > RESET_PERIOD)  {
+        ESP.restart();
+    }
 }
  
 void newRange()
