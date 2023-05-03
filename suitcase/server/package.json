@@ -12,6 +12,9 @@
   "dependencies": {
     "express": "^4.18.2",
     "nodemon": "^2.0.22",
-    "rosnodejs": "^3.1.0"
+    "roslib": "^1.3.0",
+    "rosnodejs": "^3.1.0",
+    "socket.io": "^4.6.1",
+    "swagger-ui-express": "^4.6.2"
   }
 }

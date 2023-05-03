@@ -1,0 +1,58 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Robot API
+  description: API for controlling a robot
+servers:
+  - url: http://localhost:3000
+paths:
+  /mode/{mode_val}:
+    get:
+      summary: Set the mode of the robot
+      parameters:
+        - name: mode_val
+          in: path
+          required: true
+          schema:
+            type: string
+      responses: {}
+  /left_speed/{speed}:
+    get:
+      summary: Set the speed of the left wheel
+      parameters:
+        - name: speed
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses: {}
+  /right_speed/{speed}:
+    get:
+      summary: Set the speed of the right wheel
+      parameters:
+        - name: speed
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses: {}
+  /left_direction/{direction}:
+    get:
+      summary: Set the direction of the left wheel
+      parameters:
+        - name: direction
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses: {}
+  /right_direction/{direction}:
+    get:
+      summary: Set the direction of the right wheel
+      parameters:
+        - name: direction
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses: {}
