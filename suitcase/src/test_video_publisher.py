@@ -4,22 +4,21 @@
 # Author:
 # - Addison Sears-Collins
 # - https://automaticaddison.com
+# Modified to detect ArUco tag with ID 667 and stream video over the network
 
 # Import the necessary libraries
 import rospy  # Python library for ROS
-from sensor_msgs.msg import Image  # Image is the message type
+from sensor_msgs.msg import CompressedImage  # CompressedImage is the message type
 from std_msgs.msg import Int16  # Image is the message type
 import cv2  # OpenCV library
-from cv_bridge import CvBridge  # Package to convert between ROS and OpenCV Images
 import numpy as np
 import math
-
 
 def publish_message():
 
     # Node is publishing to the video_frames topic using
-    # the message type Image
-    pub = rospy.Publisher('video_frames', Image, queue_size=10)
+    # the message type CompressedImage
+    pub = rospy.Publisher('video_frames/compressed', CompressedImage, queue_size=10)
     pub2 = rospy.Publisher('pixel', Int16, queue_size=10)
     # Tells rospy the name of the node.
     # Anonymous = True makes sure the node has a unique name. Random
@@ -34,11 +33,10 @@ def publish_message():
     cap = cv2.VideoCapture(0)
     WIDTH = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     HEIGHT = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    # print(width, height)
-    fgbg = cv2.createBackgroundSubtractorMOG2()
-
-    # Used to convert between ROS and OpenCV images
-    br = CvBridge()
+    
+    # Load the ArUco dictionary and parameters
+    aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
+    aruco_params = cv2.aruco.DetectorParameters_create()
 
     # While ROS is still running.
     while not rospy.is_shutdown():
@@ -49,75 +47,44 @@ def publish_message():
         ret, frame = cap.read()
 
         if ret == True:
-            # Print debugging information to the terminal+
+            # Print debugging information to the terminal
             rospy.loginfo('publishing video frame')
 
-            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            # Detect ArUco markers
+            corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(frame, aruco_dict, parameters=aruco_params)
 
-            # Define the range of green color in HSV color space
-            lower_green = np.array([45, 50, 50])
-            upper_green = np.array([75, 255, 255])
+            # Draw detected markers
+            frame = cv2.aruco.drawDetectedMarkers(frame, corners, ids)
 
-            # Threshold the HSV image to get only green color
-            mask = cv2.inRange(hsv, lower_green, upper_green)
+            if ids is not None:
+                # Find the ArUco tag with ID 667
+                for i, tag_id in enumerate(ids.flatten()):
+                    if tag_id == 667:
+                        # Get the center of the detected ArUco tag
+                        center = tuple(np.mean(corners[i][0], axis=0).astype(int))
 
-            # Apply morphological operations to remove noise
-            kernel = np.ones((5, 5), np.uint8)
-            mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+                        # Draw a circle at the center of the ArUco tag
+                        cv2.circle(frame, center, 3, (0, 0, 255), 2)
 
-            # Apply background subtraction
-            fgmask = fgbg.apply(mask)
+                        # Calculate the x-coordinate of the center of the rectangle relative to the center of the screen
+                        camera_center = (frame.shape[1] // 2, frame.shape[0] // 2)
+                        x_offset = center[0] - camera_center[0]
 
-            # Find contours
-            contours, _ = cv2.findContours(
-                fgmask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                        # Publish the x_offset
+                        pub2.publish(x_offset)
 
-            # Find the largest contour
-            largest_contour = None
-            largest_area = 0
-            for cnt in contours:
-                area = cv2.contourArea(cnt)
-                if area > largest_area and area > 700:
-                    largest_area = area
-                    print(area)
-                    largest_contour = cnt
+            # Encode the frame as a compressed JPEG image
+            compressed_frame = cv2.imencode('.jpg', frame)[1].tobytes()
 
-            cv2.circle(frame, (int(WIDTH/2), int(HEIGHT/2)), 1, (255, 0, 0), 2)
-            # Draw a rectangle around the largest contour
-            x, y, w, h = cv2.boundingRect(largest_contour)
-            if largest_contour is not None:
-                # print("le centre de l'objet est à ", int(x+w/2), int(y+h/2))
-                cv2.circle(frame, (int(x+w/2), int(y+h/2)), 1, (255, 0, 0), 2)
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 3)
-                cv2.line(frame, (int(x+w/2), int(y+h/2)),
-                         (int(WIDTH/2), int(HEIGHT/2)), (255, 0, 0), 1)
-                print(int(WIDTH/2)-int(x+w/2), int(HEIGHT/2)-int(y+h/2))
-
-              # Publish the image.
-              # The 'cv2_to_imgmsg' method converts an OpenCV
-              # image to a ROS image message
-                center = (x + w//2, y + h//2)
-                # Draw a line from the center of the rectangle to the center of the camera
-                camera_center = (frame.shape[1]//2, frame.shape[0]//2)
-                cv2.line(frame, center, camera_center, (255, 0, 0), 2)
-              # Calculate the angle between the line and the vertical line through the middle of the camera
-                dx = camera_center[0] - center[0]
-                dy = camera_center[1] - center[1]
-                angle = math.degrees(math.atan2(dy, dx))
-                cv2.putText(frame, f"Angle: {angle:.2f}", (20, 40),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
-                # Calculate the x-coordinate of the center of the rectangle relative to the center of the screen
-                x_offset = center[0] - camera_center[0]
-                cv2.putText(frame, f"X-Offset: {x_offset:.2f}", (20, 80),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
-        pub.publish(br.cv2_to_imgmsg(frame, encoding='rgb8'))
-        pub2.publish(x_offset)
+            # Create a CompressedImage message and publish the encoded frame
+            msg = CompressedImage()
+            msg.header.stamp = rospy.Time.now()
+            msg.format = "jpeg"
+            msg.data = compressed_frame
+            pub.publish(msg)
 
         # Sleep just enough to maintain the desired rate
         rate.sleep()
-
 
 if __name__ == '__main__':
     try:
