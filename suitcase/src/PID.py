@@ -18,7 +18,7 @@ SP_a = 0
 
 class FollowingRobot:
     def __init__(self):
-        self.mode = "ON"   # ON / OFF
+        self.mode = "AUTO"   # AUTO / MAN (=manual) / OFF
         self.LeftSpeed = rospy.Publisher('left_speed', Float64, queue_size=10)
         self.RightSpeed = rospy.Publisher('right_speed', Float64, queue_size=10)
         self.LeftDirection = rospy.Publisher('left_direction', UInt16, queue_size=10)
@@ -48,7 +48,7 @@ class FollowingRobot:
     def mode_callback(self, data):
         if self.mode != data.data:
             self.reset()
-            if data.data == "ON":
+            if data.data == "AUTO":
                 self.distance_pid.reset()
                 self.angle_pid.reset()
             self.mode = data.data
@@ -70,7 +70,7 @@ class FollowingRobot:
             self.RightSpeed.publish(- self.right_pwm)
 
     def range_callback(self, data):
-        if self.mode == "ON":
+        if self.mode == "AUTO":
             #received data
             rospy.loginfo("Received: %s", data.data)
             #sent data
@@ -82,7 +82,7 @@ class FollowingRobot:
             self.rate.sleep()
     
     def pixel_callback(self, data):
-        if self.mode == "ON":
+        if self.mode == "AUTO":
             #received data
             rospy.loginfo("Received: %s", data.data)
             #sent data
