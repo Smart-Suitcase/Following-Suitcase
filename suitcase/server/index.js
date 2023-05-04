@@ -40,14 +40,14 @@ rosnodejs.initNode('/my_node', { onTheFly: true }).then((rosNode) => {
     }
     );
 
-    let left_speed = rosNode.advertise('/left_speed', 'std_msgs/UInt16', {
+    let left_speed = rosNode.advertise('/left_speed', 'std_msgs/Float64', {
         queueSize: 1,
         latching: true,
         throttleMs: 9
     }
     );
 
-    let right_speed = rosNode.advertise('/left_speed', 'std_msgs/UInt16', {
+    let right_speed = rosNode.advertise('/left_speed', 'std_msgs/Float64', {
         queueSize: 1,
         latching: true,
         throttleMs: 9
@@ -83,7 +83,7 @@ rosnodejs.initNode('/my_node', { onTheFly: true }).then((rosNode) => {
             res.status(400).send('Invalid speed parameter');
             return;
         }
-        const message = new std_msgs.UInt16({ data: leftSpeed });
+        const message = new std_msgs.Float64({ data: leftSpeed });
         left_speed.publish(message);
         res.status(200).send(`Published left_speed: ${leftSpeed}`);
     });
@@ -94,7 +94,7 @@ rosnodejs.initNode('/my_node', { onTheFly: true }).then((rosNode) => {
             res.status(400).send('Invalid speed parameter');
             return;
         }
-        const message = new std_msgs.UInt16({ data: rightSpeed });
+        const message = new std_msgs.Float64({ data: rightSpeed });
         right_speed.publish(message);
         res.status(200).send(`Published right_speed: ${rightSpeed}`);
     });

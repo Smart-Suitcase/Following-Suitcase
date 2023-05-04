@@ -12,7 +12,7 @@
   <node name="pixel_publisher" pkg="suitcase" type="test_video_publisher.py">
   </node>
 
-  <node name="PID" pkg="suitcase" type="distance.py">  </node>
+  <node name="PID" pkg="suitcase" type="distance_PID.py">  </node>
 
 
 </launch>
