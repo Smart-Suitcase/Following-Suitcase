@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # license removed for brevity
 import rospy
-from std_msgs.msg import Float64, Int16, UInt16
+from std_msgs.msg import Float64, Int16, UInt16,String
 from simple_pid import PID
 
 ##### PID variables #####
@@ -23,7 +23,7 @@ class FollowingRobot:
         self.RightSpeed = rospy.Publisher('right_speed', Float64, queue_size=10)
         self.LeftDirection = rospy.Publisher('left_direction', UInt16, queue_size=10)
         self.RightDirection = rospy.Publisher('right_direction', UInt16, queue_size=10)
-        rospy.Subscriber('mode', Int16, self.mode_callback)
+        rospy.Subscriber('mode', String, self.mode_callback)
         rospy.Subscriber('range', Float64, self.range_callback)
         rospy.Subscriber('x_pixel', Int16, self.pixel_callback)
         rospy.init_node('pid', anonymous=True)
