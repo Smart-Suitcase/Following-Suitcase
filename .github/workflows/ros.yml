@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - 14-integration-of-github-ci
-  workflow_dispatch: # allow manually starting this workflow
+
 jobs:
   industrial_ci:
     strategy:
