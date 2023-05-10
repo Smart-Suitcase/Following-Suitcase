@@ -1,23 +1,57 @@
-name: Run Tests
+# name: Run Tests
+
+# on:
+#   push:
+#     branches:
+#       - 14-integration-of-github-ci
+
+# jobs:
+#   industrial_ci:
+#     strategy:
+#       matrix:
+#         env:
+#           - {ROS_DISTRO: noetic, ROS_REPO: testing}
+#           - {ROS_DISTRO: noetic, ROS_REPO: main}
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#       - uses: 'ros-industrial/industrial_ci@master'
+#       - name: Run Tests
+#         run: |
+#           source devel/setup.bash
+#           rostest suitcase test.launch
+#         working-directory: ./catkin_ws
+name: ROS1 Launch
 
 on:
   push:
     branches:
-      - 14-integration-of-github-ci
+      - 14-integration-of-github-ci  # remplacez "main" par le nom de la branche que vous voulez déclencher
 
 jobs:
-  industrial_ci:
-    strategy:
-      matrix:
-        env:
-          - {ROS_DISTRO: noetic, ROS_REPO: testing}
-          - {ROS_DISTRO: noetic, ROS_REPO: main}
-    runs-on: ubuntu-latest
+  launch:
+    runs-on: ubuntu-latest  # utilisez l'image d'Ubuntu la plus récente pour exécuter votre code
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: 'ros-industrial/industrial_ci@master'
-      - name: Run Tests
+      - name: Checkout code
+        uses: actions/checkout@v2  # récupère le code de votre référentiel
+
+      - uses: ros-tooling/setup-ros@v0.6
+        with:
+          required-ros-distributions: noetic
+
+      - uses: ros-tooling/action-ros-ci@v0.3
+        with:
+          package-name: my_package
+          target-ros1-distro: noetic
+
+      - name: Build ROS1 packages
         run: |
-          source devel/setup.bash
-          rostest suitcase test.launch
-        working-directory: ./catkin_ws
+          cd <chemin vers le package contenant le launch file>
+          rosdep install --from-paths src --ignore-src -r -y
+          catkin_make
+
+      - name: Run ROS1 launch file
+        run: |
+          source <chemin vers le package contenant le launch file>/devel/setup.bash
+          roslaunch <nom du package> test.launch
