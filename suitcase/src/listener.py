@@ -5,11 +5,15 @@ import rospy
 from std_msgs.msg import Float64
 import requests
 import cv2
+import base64
+import socketio
 
 flag = True
 
+sio = socketio.Client()
+sio.connect('http://192.168.4.5:5000')
+
 def capture_and_upload_image():
-    url = 'http://46.101.186.178:5001/upload'
     file_path = 'image.jpg'
 
     # initialize the camera
@@ -18,20 +22,18 @@ def capture_and_upload_image():
     # take a photo
     _, frame = camera.read()
 
-    cv2.imwrite("image.jpg", frame)
+    cv2.imwrite(file_path, frame)
 
     with open(file_path, 'rb') as file:
-        files = {'file': file}
-        response = requests.post(url, files=files)
+        encoded_image = base64.b64encode(file.read()).decode('utf-8')
+        sio.emit('image', encoded_image)
 
     # release the camera
     camera.release()
 
-    print(response.status_code)
-
 def callback(data):
     rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data.data)
-    
+
     startTime = 100000
 
     threshold = 4.0  # Set the threshold value here
