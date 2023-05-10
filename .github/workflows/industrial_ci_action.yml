@@ -16,8 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: 'ros-industrial/industrial_ci@master'
-    - name: Run Tests
-      run: |
-        source devel/setup.bash
-        rostest suitcase test.launch
-      working-directory: ./catkin_ws
+      - name: Run Tests
+        run: |
+          source devel/setup.bash
+          rostest suitcase test.launch
+        working-directory: ./catkin_ws
