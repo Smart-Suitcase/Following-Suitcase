@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Launch the rosserial_python node -->
+  <test test-name="test_node1" pkg="suitcase" type="test_image_notification.py" />
+  <test test-name="test_node2" pkg="suitcase" type="test_stop.py" />
+
+
+</launch>

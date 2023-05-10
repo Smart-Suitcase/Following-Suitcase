@@ -1,0 +1,31 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - 14-integration-of-github-ci
+  workflow_dispatch: # allow manually starting this workflow
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Set up ROS
+      uses: ros-tooling/setup-ros@0.2.4
+      with:
+        rosdistro: noetic
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        rosdep update
+        rosdep install --from-path src --ignore-src -r -y
+    - name: Build package
+      run: catkin build
+      working-directory: ./catkin_ws
+    - name: Run Tests
+      run: |
+        source devel/setup.bash
+        rostest suitcase test.launch
+      working-directory: ./catkin_ws
