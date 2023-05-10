@@ -49,7 +49,7 @@ class FollowingRobot:
             self.reset()
             if data.data == "auto":
                 self.distance_pid.reset()
-                self.angle_pid.reset()
+                # self.angle_pid.reset()
             self.mode = data.data
     
     def update_speed(self):
@@ -82,12 +82,20 @@ class FollowingRobot:
     
     def pixel_callback(self, data):
         if self.mode == "auto":
-            if data.data > 20:
-                self.rotation_pwm = 30
-            elif data.data < 20:
-                self.rotation_pwm = -30
+            if self.average_pwm > 50 | self.average_pwm < -50:
+                if data.data > 80:
+                    self.rotation_pwm = -35
+                elif data.data < 20:
+                    self.rotation_pwm = 35
+                else:
+                    self.rotation_pwm = 0
             else:
-                self.rotation_pwm = 0
+                if data.data > 80:
+                    self.rotation_pwm = -100
+                elif data.data < 20:
+                    self.rotation_pwm = 100
+                else:
+                    self.rotation_pwm = 0
             self.update_speed()
             self.rate.sleep()
         # if self.mode == "auto":
