@@ -9,12 +9,12 @@
     <param name="port" value="/dev/ttyUSB0" />
   </node>
 
-  <node name="pixel_publisher" pkg="suitcase" type="improved_tracking.py">
+  <node name="pixel_publisher" pkg="suitcase" type="pixel_publisher.py">
   </node>
 
   <node name="PID" pkg="suitcase" type="angle_regulator.py">  </node>
 
-  <node name="listener" pkg="suitcase" type="listener.py">  </node>
+  <node name="listener" pkg="suitcase" type="image_notification.py">  </node>
 
 
 </launch>
