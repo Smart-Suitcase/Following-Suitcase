@@ -5,8 +5,8 @@ import numpy as np
 # You can adjust these values depending on the color of the object you want to track
 # Proposed lower bound: [154.18413978  38.7188172   36.36586022]
 # Proposed upper bound: [174.18413978 138.7188172  136.36586022]
-lower_color = np.array([32.1, -33.8, 9.9])
-upper_color = np.array([62, 106, 149.9])
+lower_color = np.array([2.6, 70.4, 104.5])
+upper_color = np.array([32.6, 210.4, 244.5])
 
 # Initialize the webcam
 cap = cv2.VideoCapture(0)

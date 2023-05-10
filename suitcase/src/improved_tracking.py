@@ -55,9 +55,11 @@ def publish_message():
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
             # Define the range of green color in HSV color space
-            h, s, v = 164, 89, 86
-            lower_color = np.array([h-15, s-70, v-70])
-            upper_color = np.array([h+15, s+70, v+70])
+            # h, s, v = 164, 89, 86
+            # lower_color = np.array([h-15, s-70, v-70])
+            # upper_color = np.array([h+15, s+70, v+70])
+            lower_color = np.array([2.6, 70.4, 104.5])
+            upper_color = np.array([32.6, 210.4, 244.5])
 
             # Threshold the HSV image to get only green color
             mask = cv2.inRange(hsv, lower_color, upper_color)
