@@ -12,7 +12,7 @@
   <node name="pixel_publisher" pkg="suitcase" type="test_video_publisher.py">
   </node>
 
-  <node name="PID" pkg="suitcase" type="angle_PID.py">  </node>
+  <node name="PID" pkg="suitcase" type="angle_regulator.py">  </node>
 
 
 </launch>
