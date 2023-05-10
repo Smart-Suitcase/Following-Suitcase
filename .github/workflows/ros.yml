@@ -39,7 +39,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: 'ros-industrial/industrial_ci@master'
-        env: ${{matrix.env}}
     - name: Run Tests
       run: |
         source devel/setup.bash
