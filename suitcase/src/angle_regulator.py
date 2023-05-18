@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # license removed for brevity
 import rospy
-from std_msgs.msg import Float64, Int16, UInt16
+from std_msgs.msg import Float64, Int16, UInt16,String
 from simple_pid import PID
 
 ##### PID variables #####
@@ -10,20 +10,20 @@ Ki_d = 0.1
 Kd_d = 0.05
 SP_d = 2.0
 
-Kp_a = 0.5
+Kp_a = 1
 Ki_a = 0
-Kd_a = 0.01
+Kd_a = 0.03
 SP_a = 0
 #########################
 
 class FollowingRobot:
     def __init__(self):
-        self.mode = "ON"   # ON / OFF
+        self.mode = "auto"   # AUTO / MAN (=manual) / OFF
         self.LeftSpeed = rospy.Publisher('left_speed', Float64, queue_size=10)
         self.RightSpeed = rospy.Publisher('right_speed', Float64, queue_size=10)
         self.LeftDirection = rospy.Publisher('left_direction', UInt16, queue_size=10)
         self.RightDirection = rospy.Publisher('right_direction', UInt16, queue_size=10)
-        rospy.Subscriber('mode', Int16, self.mode_callback)
+        rospy.Subscriber('mode', String, self.mode_callback)
         rospy.Subscriber('range', Float64, self.range_callback)
         rospy.Subscriber('x_pixel', Int16, self.pixel_callback)
         rospy.init_node('pid', anonymous=True)
@@ -32,8 +32,7 @@ class FollowingRobot:
         self.left_pwm = 0
         self.right_pwm = 0
         self.rate = rospy.Rate(25)
-        self.distance_pid = PID(Kp_d, Ki_d, Kd_d, setpoint=SP_d, output_limits=(-235,235))
-        self.angle_pid = PID(Kp_a, Ki_a, Kd_a, setpoint=SP_a, output_limits=(-100,100))
+        self.distance_pid = PID(Kp_d, Ki_d, Kd_d, setpoint=SP_d, output_limits=(-205,205))
     
     def reset(self):
         self.left_pwm = 0
@@ -48,9 +47,9 @@ class FollowingRobot:
     def mode_callback(self, data):
         if self.mode != data.data:
             self.reset()
-            if data.data == "ON":
+            if data.data == "auto":
                 self.distance_pid.reset()
-                self.angle_pid.reset()
+                # self.angle_pid.reset()
             self.mode = data.data
     
     def update_speed(self):
@@ -70,7 +69,7 @@ class FollowingRobot:
             self.RightSpeed.publish(- self.right_pwm)
 
     def range_callback(self, data):
-        if self.mode == "ON":
+        if self.mode == "auto":
             #received data
             rospy.loginfo("Received: %s", data.data)
             #sent data
@@ -82,16 +81,33 @@ class FollowingRobot:
             self.rate.sleep()
     
     def pixel_callback(self, data):
-        if self.mode == "ON":
-            #received data
-            rospy.loginfo("Received: %s", data.data)
-            #sent data
-            self.rotation_pwm = self.angle_pid(data.data)
+        if self.mode == "auto":
+            if self.average_pwm > 50 | self.average_pwm < -50:
+                if data.data > 80:
+                    self.rotation_pwm = -35
+                elif data.data < 20:
+                    self.rotation_pwm = 35
+                else:
+                    self.rotation_pwm = 0
+            else:
+                if data.data > 80:
+                    self.rotation_pwm = -100
+                elif data.data < 20:
+                    self.rotation_pwm = 100
+                else:
+                    self.rotation_pwm = 0
             self.update_speed()
-            rospy.loginfo("Average pwm: {} ; Rotation pwml: {}".format(self.average_pwm, self.rotation_pwm))
-            rospy.loginfo("Sent: {} {}".format(self.left_pwm, self.right_pwm))
-            #sleep
             self.rate.sleep()
+        # if self.mode == "auto":
+        #     #received data
+        #     rospy.loginfo("Received: %s", data.data)
+        #     #sent data
+        #     self.rotation_pwm = self.angle_pid(data.data)
+        #     self.update_speed()
+        #     rospy.loginfo("Average pwm: {} ; Rotation pwml: {}".format(self.average_pwm, self.rotation_pwm))
+        #     rospy.loginfo("Sent: {} {}".format(self.left_pwm, self.right_pwm))
+        #     #sleep
+        #     self.rate.sleep()
 
 if __name__ == '__main__':
     robot = FollowingRobot()
