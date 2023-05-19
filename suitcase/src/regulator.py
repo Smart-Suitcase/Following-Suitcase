@@ -85,14 +85,14 @@ class FollowingRobot:
             if self.average_pwm > 50 | self.average_pwm < -50:
                 if data.data > 80:
                     self.rotation_pwm = -35
-                elif data.data < 20:
+                elif data.data < 80:
                     self.rotation_pwm = 35
                 else:
                     self.rotation_pwm = 0
             else:
                 if data.data > 80:
                     self.rotation_pwm = -100
-                elif data.data < 20:
+                elif data.data < -80:
                     self.rotation_pwm = 100
                 else:
                     self.rotation_pwm = 0
