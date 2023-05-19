@@ -26,7 +26,7 @@ class FollowingRobot:
         rospy.Subscriber('mode', String, self.mode_callback)
         rospy.Subscriber('range', Float64, self.range_callback)
         rospy.Subscriber('x_pixel', Int16, self.pixel_callback)
-        rospy.init_node('pid', anonymous=True)
+        rospy.init_node('angle_regulation', anonymous=True)
         self.average_pwm = 0
         self.rotation_pwm = 0
         self.left_pwm = 0

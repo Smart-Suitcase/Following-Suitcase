@@ -19,17 +19,13 @@ class FollowingRobot:
         self.ld = rospy.Publisher('left_direction', UInt16, queue_size=10)
         self.rd = rospy.Publisher('right_direction', UInt16, queue_size=10)
         rospy.Subscriber('range', Float64, self.callback)
-        #rospy.Subscriber('range', Float64, FollowingRobot.callback)    #maybe ?
-        rospy.init_node('pid', anonymous=True)
+        rospy.init_node('pid_distance', anonymous=True)
         self.distance = 1
         self.pwm_value = 0
         self.rate = rospy.Rate(20)
         self.pid = PID(Kp, Ki, Kd, setpoint=SP, output_limits=(-255,255))
 
     def callback(self, data):
-        #received data
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-        #sent data
         self.pwm_value = self.pid(2 * self.pid.setpoint - data.data)
         if self.pwm_value >= 0:
             self.ld.publish(2)
@@ -41,13 +37,6 @@ class FollowingRobot:
             self.rd.publish(1)
             self.ls.publish(- self.pwm_value)
             self.rs.publish(- self.pwm_value)
-        #sleep//
-
-
-
-
-        
-        rospy.loginfo("I sent %s", self.pwm_value)
         self.rate.sleep()
 
 if __name__ == '__main__':
